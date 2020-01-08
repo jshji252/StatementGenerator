@@ -95,9 +95,10 @@ def generate_statement(owner, chinese = True):
                                         </tr>
 ***ExpensesSubTable***
                                         <tr>
-                                                <td class="descriptions-heading">净收入</td>
+                                                <td class="descriptions-heading">本月净收入</td>
                                                 <td class="amounts-heading"> ***NetIncome*** </td>
                                         </tr>
+***BroughtForwardExpense***
 ***OwnerReceipts***
 ***PaymentWithheld***
 ***PaidToOwner***
@@ -159,6 +160,10 @@ def generate_statement(owner, chinese = True):
                                                 <td class="descriptions-heading">Nett Amount Owing To Owner</td>
                                                 <td class="amounts-heading"> ***NAOTO*** </td>
                                         </tr>'''
+    BFE = '''                                        <tr>
+                                                <td class="descriptions-heading">上月未结清款项</td>
+                                                <td class="amounts-heading"> ***BFE*** </td>
+                                        </tr>'''
     paid_to_owner = '''                                        <tr>
                                                 <td class="descriptions-heading">转账金额</td>
                                                 <td class="amounts-heading"> ***PaidToOwner*** </td>
@@ -203,7 +208,7 @@ def generate_statement(owner, chinese = True):
 
     ## Replace Gross Income, Income Expenses, Expenses, Net Income placeholders with appropriate values
     # Simple calculations for expense and Net Income
-    expense = owner.totals["Expenses"]["Debit"] + owner.totals["Brought Forward Expense"]["Debit"]
+    expense = owner.totals["Expenses"]["Debit"] # + owner.totals["Brought Forward Expense"]["Debit"]
     netIncome = float('%.2f' % float(owner.grossIncome - owner.totals["Income Expenses"]["Debit"] - owner.totals["Expenses"]["Debit"]))
 
     main_structure_start = replacer_helper(main_structure_start, "***GrossIncome***", '%.2f' % owner.grossIncome)
@@ -259,6 +264,16 @@ def generate_statement(owner, chinese = True):
     else: #Otherwise, get rid of the place holder
             main_structure_start = replacer_helper(main_structure_start, "***NettAmountOwingToOwner***", "")
 
+    ## IF THERE IS Brought Forward Expense (BFE)
+    # Then we need to add this to the PHP, to let the users know.
+    # Otherwise, get rid of the place holder by simply replacing it with ''
+    if (owner.totals["Brought Forward Expense"]["Debit"]) > 0: #IF BFE >0
+            BFE = replacer_helper(BFE, "***BFE***", '%.2f' % owner.totals["Brought Forward Expense"]["Debit"])
+            main_structure_start = replacer_helper(main_structure_start, "***BroughtForwardExpense***", BFE)
+    else: #Otherwise, get rid of the place holder
+            main_structure_start = replacer_helper(main_structure_start, "***BroughtForwardExpense***", "")
+
+
     ## Sometimes multiple owners own apt, and want separte payment
     # Find the number of Paid to Owners by accessing the properties of TOTALS
     # and append each property to the list so that we can access the recipient's name later
@@ -307,10 +322,10 @@ def generate_statement(owner, chinese = True):
         current_expense = replacer_helper(current_expense, "***ExpenseAmount***", '%.2f' % owner.expenses[expense])
         subtable_expenses = subtable_expenses + current_expense
     
-    if (owner.totals["Brought Forward Expense"]["Debit"] > 0) : # if there was BFE, then add this to the expense
-        current_expense = replacer_helper(subtable_expenses_temp, "***ExpenseTitle***", "Brought Forward Expense")
-        current_expense = replacer_helper(current_expense, "***ExpenseAmount***", '%.2f' % owner.totals["Brought Forward Expense"]["Debit"])
-        subtable_expenses = subtable_expenses + current_expense
+#     if (owner.totals["Brought Forward Expense"]["Debit"] > 0) : # if there was BFE, then add this next to Net income
+#         current_expense = replacer_helper(subtable_expenses_temp, "***ExpenseTitle***", "上月未结清款项")
+#         current_expense = replacer_helper(current_expense, "***ExpenseAmount***", '%.2f' % owner.totals["Brought Forward Expense"]["Debit"])
+#         subtable_expenses = subtable_expenses + current_expense
     main_structure_start = replacer_helper(main_structure_start, "***ExpensesSubTable***", subtable_expenses)
     
     subtable_incomeExpenses = ''''''

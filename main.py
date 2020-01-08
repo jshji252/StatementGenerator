@@ -6,7 +6,8 @@ from random import randint
 from openpyxl import load_workbook
 
 # Using the openpyxl module, load the workbook as an openpyxl object
-origin_wb = load_workbook(filename="../original_statements_excel/Owner_Statement_11.xlsx")
+origin_wb = load_workbook(filename="../original_statements_excel/Owner_Statement_12.xlsx")
+
 
 ## Create the dictionary that contains necessary numbers for all owners
 owners = {}
